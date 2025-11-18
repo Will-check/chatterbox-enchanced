@@ -3,6 +3,10 @@ import numpy as np
 import torch
 from chatterbox.mtl_tts import ChatterboxMultilingualTTS, SUPPORTED_LANGUAGES
 import gradio as gr
+import os
+
+output_dir = "/app/output"
+os.makedirs(output_dir, exist_ok=True)
 
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 print(f"🚀 Running on device: {DEVICE}")
