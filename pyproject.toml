@@ -16,7 +16,7 @@ dependencies = [
     "torchaudio==2.9.1+cu128",
     "transformers==4.46.3",
     "diffusers==0.29.0",
-    "resemble-perth==1.0.1",
+#    "resemble-perth==1.0.1",
     "conformer==0.3.2",
     "safetensors==0.5.3",
 #    "spacy-pkuseg",
