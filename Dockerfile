@@ -18,11 +18,6 @@ RUN conda create -n chatterbox python=3.11 -y && \
 # Make env active
 ENV PATH="/opt/conda/envs/chatterbox/bin:$PATH"
 
-# App settings
-ENV GRADIO_TEMP_DIR="/app/output"
-ENV GRADIO_SERVER_NAME="0.0.0.0"
-
-
 # Project dependecies
 COPY pyproject.toml .
 COPY src ./src
@@ -31,6 +26,10 @@ COPY src ./src
 RUN pip install . && \
     rm -rf /root/.cache/pip && \
     rm -rf /tmp/*
+
+# App settings
+ENV GRADIO_TEMP_DIR="/app/output"
+ENV GRADIO_SERVER_NAME="0.0.0.0"
 
 # Copy rest of the project
 WORKDIR /app
