@@ -1,15 +1,16 @@
 version: '3.8'
 services:
   openvoice_app:
-    image: chatterbox-model
+    image: chatterbox-enchanced
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: chatterbox-model
+    container_name: chatterbox-enchanced
     volumes:
-      - "~/Documents/Docker/chatterbox:/app/output"
+      - "~/Documents/Docker/chatterbox-enchanced:/app/output"
+      - ".:/app"
     ports:
-      - "7860:7860"
+      - "7861:7861"
     deploy:
       resources:
         reservations:

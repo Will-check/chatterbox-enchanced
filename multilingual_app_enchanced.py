@@ -247,75 +247,107 @@ with gr.Blocks() as demo:
         Generate high-quality multilingual speech from text with reference audio styling, supporting 23 languages.
         """
     )
-    
-    # Display supported languages
+
     gr.Markdown(get_supported_languages_display())
-    with gr.Row():
-        with gr.Column():
-            initial_lang = "fr"
-            text = gr.Textbox(
-                value=default_text_for_ui(initial_lang),
-                label="Text to synthesize (max chars 300)",
-                max_lines=5
-            )
-            
-            language_id = gr.Dropdown(
-                choices=list(ChatterboxMultilingualTTS.get_supported_languages().keys()),
-                value=initial_lang,
-                label="Language",
-                info="Select the language for text-to-speech synthesis"
-            )
-            
-            ref_wav = gr.Audio(
-                sources=["upload", "microphone"],
-                type="filepath",
-                label="Reference Audio File (Optional)",
-                value=default_audio_for_ui(initial_lang)
-            )
-            
-            gr.Markdown(
-                "💡 **Note**: Ensure that the reference clip matches the specified language tag. Otherwise, language transfer outputs may inherit the accent of the reference clip's language. To mitigate this, set the CFG weight to 0.",
-                elem_classes=["audio-note"]
-            )
-            
-            exaggeration = gr.Slider(
-                0.25, 2, step=.05, label="Exaggeration (Neutral = 0.5, extreme values can be unstable)", value=.5
-            )
-            cfg_weight = gr.Slider(
-                0.2, 1, step=.05, label="CFG/Pace", value=0.5
+
+    with gr.Tabs():
+        # ---------------------------------------------------------
+        # TAB 1: 🎤 Text-to-Speech (twój obecny TTS UI)
+        # ---------------------------------------------------------
+        with gr.Tab("🎤 Text-to-Speech"):
+            # ➜ NIC NIE ZMIENIAMY — zostawiasz tutaj swój aktualny działający UI.
+            with gr.Row():
+                with gr.Column():
+                    # --- TWÓJ ISTNIEJĄCY KOD UI ---
+                    initial_lang = "fr"
+                    text = gr.Textbox(
+                        value=default_text_for_ui(initial_lang),
+                        label="Text to synthesize (max chars 300)",
+                        max_lines=5
+                    )
+                    language_id = gr.Dropdown(
+                        choices=list(ChatterboxMultilingualTTS.get_supported_languages().keys()),
+                        value=initial_lang,
+                        label="Language",
+                        info="Select the language for text-to-speech synthesis"
+                    )
+                    ref_wav = gr.Audio(
+                        sources=["upload", "microphone"],
+                        type="filepath",
+                        label="Reference Audio File (Optional)",
+                        value=None
+                    )
+
+                    gr.Markdown(
+                        "💡 **Note**: Ensure that the reference clip matches the specified language tag. Otherwise, language transfer outputs may inherit the accent of the reference clip's language. To mitigate this, set the CFG weight to 0.",
+                        elem_classes=["audio-note"]
+                    )
+
+                    exaggeration = gr.Slider(
+                        0.25, 2, step=.05, label="Exaggeration (Neutral = 0.5, extreme values can be unstable)", value=.5
+                    )
+                    cfg_weight = gr.Slider(
+                        0.2, 1, step=.05, label="CFG/Pace", value=0.5
+                    )
+
+                    with gr.Accordion("More options", open=False):
+                        seed_num = gr.Number(value=0, label="Random seed (0 for random)")
+                        temp = gr.Slider(0.05, 5, step=.05, label="Temperature", value=.8)
+
+                    run_btn = gr.Button("Generate", variant="primary")
+
+                with gr.Column():
+                    audio_output = gr.Audio(label="Output Audio")
+
+            # język zmienia default audio + default text
+            def on_language_change(lang, current_ref, current_text):
+                return None, default_text_for_ui(lang)
+
+            language_id.change(
+                fn=on_language_change,
+                inputs=[language_id, ref_wav, text],
+                outputs=[ref_wav, text],
+                show_progress=False
             )
 
-            with gr.Accordion("More options", open=False):
-                seed_num = gr.Number(value=0, label="Random seed (0 for random)")
-                temp = gr.Slider(0.05, 5, step=.05, label="Temperature", value=.8)
+            run_btn.click(
+                fn=generate_tts_audio,
+                inputs=[
+                    text,
+                    language_id,
+                    ref_wav,
+                    exaggeration,
+                    temp,
+                    seed_num,
+                    cfg_weight,
+                ],
+                outputs=[audio_output],
+            )
 
-            run_btn = gr.Button("Generate", variant="primary")
+        # ---------------------------------------------------------
+        # TAB 2: 📚 Voice Library
+        # ---------------------------------------------------------
+        with gr.Tab("📚 Voice Library"):
+            gr.Markdown("🚧 Voice Library UI will be implemented later.")
 
-        with gr.Column():
-            audio_output = gr.Audio(label="Output Audio")
+        # ---------------------------------------------------------
+        # TAB 3: 📖 Audiobook Creation - Single Sample
+        # ---------------------------------------------------------
+        with gr.Tab("📖 Audiobook Creation - Single Sample"):
+            gr.Markdown("🚧 Single-sample Audiobook Creation will be added soon.")
 
-        def on_language_change(lang, current_ref, current_text):
-            return default_audio_for_ui(lang), default_text_for_ui(lang)
+        # ---------------------------------------------------------
+        # TAB 4: 🎭 Audiobook Creation - Multi-Sample
+        # ---------------------------------------------------------
+        with gr.Tab("🎭 Audiobook Creation - Multi-Sample"):
+            gr.Markdown("🚧 Multi-sample Audiobook pipeline will be implemented here.")
 
-        language_id.change(
-            fn=on_language_change,
-            inputs=[language_id, ref_wav, text],
-            outputs=[ref_wav, text],
-            show_progress=False
-        )
+        # ---------------------------------------------------------
+        # TAB 5: 🎬 Production Studio
+        # ---------------------------------------------------------
+        with gr.Tab("🎬 Production Studio"):
+            gr.Markdown("🚧 Production Studio features will be added later.")
 
-    run_btn.click(
-        fn=generate_tts_audio,
-        inputs=[
-            text,
-            language_id,
-            ref_wav,
-            exaggeration,
-            temp,
-            seed_num,
-            cfg_weight,
-        ],
-        outputs=[audio_output],
-    )
+
 
 demo.launch(mcp_server=True)
