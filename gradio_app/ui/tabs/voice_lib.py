@@ -7,7 +7,7 @@ from gradio_app.models.tts_model import get_or_load_model
 
 
 def build_voice_library_tab(voice_library_path_state):
-    with gr.Tab("📚 Voice Library"):
+    with gr.Tab("📚 Voice Library", id="voice_library_tab"):
         with gr.Row():
             with gr.Column(scale=1):
                 gr.HTML("<h3>🎭 Voice Management</h3>")
@@ -39,7 +39,6 @@ def build_voice_library_tab(voice_library_path_state):
                     )
                     
                     with gr.Row():
-                        load_voice_btn = gr.Button("📥 Load Voice", size="sm")
                         refresh_btn = gr.Button("🔄 Refresh", size="sm")
                         delete_voice_btn = gr.Button("🗑️ Delete", size="sm", variant="stop")
             
@@ -136,23 +135,23 @@ def build_voice_library_tab(voice_library_path_state):
 
                     # Status messages
                     voice_status = gr.HTML("<div class='voice-status'>Ready to test and save voices...</div>")
-        # WILK Uncommet when new tabs will be ready
+
         update_path_btn.click(
             fn=vl.update_voice_library_path,
             inputs=voice_library_path,
-            outputs=[voice_library_path_state, config_status, voice_dropdown]#, tts_voice_selector, audiobook_voice_selector]
+            outputs=[voice_library_path_state, config_status, voice_dropdown]
         )
-        # WILK Uncommet when new tabs will be ready
+        
         refresh_btn.click(
-            fn=lambda path: (vl.refresh_voice_list(path)),# refresh_voice_choices(path), refresh_audiobook_voice_choices(path)),
+            fn=vl.refresh_voice_choices,
             inputs=voice_library_path_state,
-            outputs=[voice_dropdown]#, tts_voice_selector, audiobook_voice_selector]
+            outputs=[voice_dropdown]
         )
 
-        load_voice_btn.click(
+        voice_dropdown.change(
             fn=vl.load_voice_profile,
             inputs=[voice_library_path_state, voice_dropdown],
-            outputs=[ref_audio, voice_exaggeration, voice_cfg, voice_temp, voice_name, voice_display_name, voice_description]
+            outputs=[ref_audio, voice_exaggeration, voice_cfg, voice_temp, voice_name, voice_display_name, voice_description, voice_status]
         )
 
         test_voice_btn.click(
@@ -181,18 +180,17 @@ def build_voice_library_tab(voice_library_path_state):
             ],
             outputs=voice_status
         ).then(
-            fn=lambda path: (vl.refresh_voice_list(path)),# refresh_voice_choices(path), refresh_audiobook_voice_choices(path)),
+            fn=vl.refresh_voice_choices,
             inputs=voice_library_path_state,
-            outputs=[voice_dropdown]#, tts_voice_selector, audiobook_voice_selector]
+            outputs=[voice_dropdown]
         )
-        # WILK Uncomment refresh when other tabs will be available
 
         delete_voice_btn.click(
             fn= vl.delete_voice_profile,
             inputs=[voice_library_path_state, voice_dropdown],
             outputs=[voice_status, voice_dropdown]
         ).then(
-            fn=lambda path: (vl.refresh_voice_choices(path)),# refresh_audiobook_voice_choices(path)),
+            fn=vl.refresh_voice_choices,
             inputs=voice_library_path_state,
             outputs=[voice_dropdown]
         )    

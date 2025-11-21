@@ -32,11 +32,11 @@ def build_ui():
 
         voice_library_path_state = gr.State(DEFAULT_VOICE_LIBRARY)
     
-        with gr.Tabs():
+        with gr.Tabs() as tabs:
             build_text_to_speech_tab()
             build_voice_library_tab(voice_library_path_state)
         #     build_single_tab()
         #     build_multi_tab()
         #     build_production_tab()
-        
+
     return demo

@@ -3,7 +3,7 @@ from gradio_app.models.tts_model import get_or_load_model
 from gradio_app.logic.common import default_text_for_ui, on_language_change, generate_tts_audio, INITIAL_LANG
 
 def build_text_to_speech_tab():
-    with gr.Tab("🎤 Text-to-Speech"):
+    with gr.Tab("🎤 Text-to-Speech", id="tts-tab"):
         with gr.Row():
             with gr.Column():
                 text = gr.Textbox(
@@ -19,7 +19,14 @@ def build_text_to_speech_tab():
                     info="Select the language for text-to-speech synthesis"
                 )
 
-                ref_wav = gr.Audio(
+                voice_dropdown = gr.Dropdown(
+                    choices=[],
+                    label="Saved Voice Profiles",
+                    value=None,
+                    interactive=True
+                )
+                
+                ref_audio = gr.Audio(
                     sources=["upload", "microphone"],
                     type="filepath",
                     label="Reference Audio File (Optional)",
@@ -50,8 +57,8 @@ def build_text_to_speech_tab():
 
         language_id.change(
             fn=on_language_change,
-            inputs=[language_id, ref_wav, text],
-            outputs=[ref_wav, text],
+            inputs=[language_id, ref_audio, text],
+            outputs=[ref_audio, text],
             show_progress=False
         )
 
@@ -60,7 +67,7 @@ def build_text_to_speech_tab():
             inputs=[
                 text,
                 language_id,
-                ref_wav,
+                ref_audio,
                 exaggeration,
                 temp,
                 seed_num,

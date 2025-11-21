@@ -52,39 +52,14 @@ def get_voice_profiles(voice_library_path):
 def get_voice_choices(voice_library_path):
     """Get voice choices for dropdown with display names"""
     profiles = get_voice_profiles(voice_library_path)
-    choices = [("Manual Input (Upload Audio)", None)]
-    for profile in profiles:
-        display_text = f"🎭 {profile['display_name']} ({profile['name']})"
-        choices.append((display_text, profile['name']))
+    choices = ["Manual Input (Upload Audio)"]
+    choices += [p["name"] for p in profiles]
     return choices
-
-def refresh_voice_list(voice_library_path):
-    """Refresh the voice profile list"""
-    profiles = get_voice_profiles(voice_library_path)
-    choices = [p['name'] for p in profiles]
-    return gr.Dropdown(choices=choices, value=choices[0] if choices else None)
 
 def refresh_voice_choices(voice_library_path):
     """Refresh voice choices for TTS dropdown"""
     choices = get_voice_choices(voice_library_path)
-    return gr.Dropdown(choices=choices, value=None)
-
-def get_audiobook_voice_choices(voice_library_path):
-    """Get voice choices for audiobook creation (no manual input option)"""
-    profiles = get_voice_profiles(voice_library_path)
-    choices = []
-    if not profiles:
-        choices.append(("No voices available - Create voices first", None))
-    else:
-        for profile in profiles:
-            display_text = f"🎭 {profile['display_name']} ({profile['name']})"
-            choices.append((display_text, profile['name']))
-    return choices
-
-def refresh_audiobook_voice_choices(voice_library_path):
-    """Refresh voice choices for audiobook creation"""
-    choices = get_audiobook_voice_choices(voice_library_path)
-    return gr.Dropdown(choices=choices, value=choices[0][1] if choices and choices[0][1] else None)
+    return gr.Dropdown(choices=choices, value=choices[0] if choices else None)
 
 def ensure_voice_library_exists(voice_library_path):
     """Ensure the voice library directory exists"""
@@ -104,26 +79,14 @@ def save_config(voice_library_path):
     except Exception as e:
         return f"❌ Error saving configuration: {str(e)}"
     
-def refresh_voice_list(voice_library_path):
-    """Refresh the voice profile list"""
-    profiles = get_voice_profiles(voice_library_path)
-    choices = [p['name'] for p in profiles]
-    return gr.update(choices=choices, value=choices[0] if choices else None)
-
-def refresh_voice_choices(voice_library_path):
-    """Refresh voice choices for TTS dropdown"""
-    choices = get_voice_choices(voice_library_path)
-    return gr.Dropdown(choices=choices, value=None)
-
-def refresh_audiobook_voice_choices(voice_library_path):
-    """Refresh voice choices for audiobook creation"""
-    choices = get_audiobook_voice_choices(voice_library_path)
-    return gr.Dropdown(choices=choices, value=choices[0][1] if choices and choices[0][1] else None)
-
 def update_voice_library_path(new_path):
     """Update the voice library path and save to config"""
     if not new_path.strip():
-        return DEFAULT_VOICE_LIBRARY, "❌ Path cannot be empty, using default", refresh_voice_list(DEFAULT_VOICE_LIBRARY), refresh_voice_choices(DEFAULT_VOICE_LIBRARY), refresh_audiobook_voice_choices(DEFAULT_VOICE_LIBRARY)
+        return (
+            DEFAULT_VOICE_LIBRARY,
+            "❌ Path cannot be empty, using default",
+            refresh_voice_choices(DEFAULT_VOICE_LIBRARY)
+        )
     
     # Ensure the directory exists
     ensure_voice_library_exists(new_path)
@@ -135,21 +98,19 @@ def update_voice_library_path(new_path):
     return (
         new_path,  # Update the state
         save_msg,  # Status message
-        refresh_voice_list(new_path),  # Updated voice dropdown
-        # refresh_voice_choices(new_path),  # Updated TTS choices
-        # refresh_audiobook_voice_choices(new_path)  # Updated audiobook choices
+        refresh_voice_choices(new_path),  # Updated voice dropdown
     )
 
 def load_voice_profile(voice_library_path, voice_name):
     """Load a voice profile and return its settings"""
     if not voice_name:
-        return None, 0.5, 0.5, 0.8, 0.05, 1.0, 1.2, "No voice selected"
+        return None, 0.5, 0.5, 0.8, "", "", "", "❌ No voice selected"
     
     profile_dir = os.path.join(voice_library_path, voice_name)
     config_file = os.path.join(profile_dir, "config.json")
     
     if not os.path.exists(config_file):
-        return None, 0.5, 0.5, 0.8, 0.05, 1.0, 1.2, f"❌ Voice profile '{voice_name}' not found"
+        return None, 0.5, 0.5, 0.8, "", "", "", f"❌ Voice profile '{voice_name}' not found"
     
     try:
         with open(config_file, 'r') as f:
@@ -176,19 +137,18 @@ def load_voice_profile(voice_library_path, voice_name):
 
 def delete_voice_profile(voice_library_path, voice_name):
     """Delete a voice profile"""
-    if not voice_name:
-        return "❌ No voice selected", []
+    if not voice_name or voice_name == "Manual Input (Upload Audio)":
+        return "❌ No voice selected", gr.update()
     
     profile_dir = os.path.join(voice_library_path, voice_name)
     if os.path.exists(profile_dir):
         try:
             shutil.rmtree(profile_dir)
-            return f"✅ Voice profile '{voice_name}' deleted successfully!", get_voice_profiles(voice_library_path)
+            return f"✅ Voice profile '{voice_name}' deleted successfully!", gr.update()
         except Exception as e:
-            return f"❌ Error deleting voice profile: {str(e)}", get_voice_profiles(voice_library_path)
+            return f"❌ Error deleting voice profile: {str(e)}", gr.update()
     else:
-        return f"❌ Voice profile '{voice_name}' not found", get_voice_profiles(voice_library_path)
-
+        return f"❌ Voice profile '{voice_name}' not found", gr.update()
 def analyze_audio_level(audio_data, sample_rate=24000):
     """
     Analyze the audio level and return various volume metrics.
