@@ -1,3 +1,5 @@
+import gradio as gr
+import os
 from gradio_app.models.tts_model import get_or_load_model, set_seed
 
 
@@ -100,6 +102,32 @@ INITIAL_LANG = "en"
 DEFAULT_VOICE_LIBRARY = "./voice_library"
 CONFIG_FILE = "audiobook_config.json"
 
+DEFAULT_AUDIO_PATHS = [
+    os.path.normpath(v["audio"])
+    for v in LANGUAGE_CONFIG.values()
+    if v.get("audio")
+]
+
+def is_default_audio_path(path: str | None) -> bool:
+    if not path:
+        return True
+
+    p_norm = os.path.normpath(path)
+    p_base = os.path.basename(p_norm)
+
+    for a in DEFAULT_AUDIO_PATHS:
+        a_norm = os.path.normpath(a)
+        a_base = os.path.basename(a_norm)
+
+        if p_norm == a_norm:
+            return True
+        if p_norm.endswith(a_norm):
+            return True
+        if p_base == a_base:
+            return True
+
+    return False
+
 def default_audio_for_ui(lang: str) -> str | None:
     return LANGUAGE_CONFIG.get(lang, {}).get("audio")
 
@@ -107,7 +135,12 @@ def default_text_for_ui(lang: str) -> str:
     return LANGUAGE_CONFIG.get(lang, {}).get("text", "")
 
 def on_language_change(lang, current_ref, current_text):
-    return None, default_text_for_ui(lang)
+    new_text = default_text_for_ui(lang)
+
+    if is_default_audio_path(current_ref):
+        return default_audio_for_ui(lang), new_text
+
+    return gr.update(value=current_ref), new_text
 
 def generate_tts_audio(
     text_input: str,

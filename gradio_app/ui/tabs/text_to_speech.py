@@ -1,9 +1,10 @@
 import gradio as gr
 from gradio_app.models.tts_model import get_or_load_model
 from gradio_app.logic.common import default_text_for_ui, on_language_change, generate_tts_audio, INITIAL_LANG
+from gradio_app.logic.voice_lib import refresh_voice_choices, load_voice_profile_audio
 
-def build_text_to_speech_tab():
-    with gr.Tab("🎤 Text-to-Speech", id="tts-tab"):
+def build_text_to_speech_tab(voice_library_path_state):
+    with gr.Tab("🎤 Text-to-Speech", id="tts-tab") as tts_tab:
         with gr.Row():
             with gr.Column():
                 text = gr.Textbox(
@@ -62,6 +63,13 @@ def build_text_to_speech_tab():
             show_progress=False
         )
 
+        voice_dropdown.change(
+            fn=load_voice_profile_audio,
+            inputs=[voice_library_path_state, voice_dropdown],
+            outputs=ref_audio,
+            show_progress=False
+        )
+
         run_btn.click(
             fn=generate_tts_audio,
             inputs=[
@@ -76,3 +84,9 @@ def build_text_to_speech_tab():
             outputs=[audio_output],
         )
             
+    tts_tab.select(
+        fn=refresh_voice_choices,
+        inputs=voice_library_path_state,
+        outputs=voice_dropdown,
+        show_progress=False
+    )

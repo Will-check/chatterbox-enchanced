@@ -26,7 +26,6 @@ except ImportError:
 
     
 def get_voice_profiles(voice_library_path):
-    """Get list of saved voice profiles"""
     if not os.path.exists(voice_library_path):
         return []
     
@@ -50,24 +49,20 @@ def get_voice_profiles(voice_library_path):
     return profiles
 
 def get_voice_choices(voice_library_path):
-    """Get voice choices for dropdown with display names"""
     profiles = get_voice_profiles(voice_library_path)
     choices = ["Manual Input (Upload Audio)"]
     choices += [p["name"] for p in profiles]
     return choices
 
 def refresh_voice_choices(voice_library_path):
-    """Refresh voice choices for TTS dropdown"""
     choices = get_voice_choices(voice_library_path)
-    return gr.Dropdown(choices=choices, value=choices[0] if choices else None)
+    return gr.update(choices=choices, value=choices[0] if choices else None)
 
 def ensure_voice_library_exists(voice_library_path):
-    """Ensure the voice library directory exists"""
     Path(voice_library_path).mkdir(parents=True, exist_ok=True)
     return voice_library_path
 
 def save_config(voice_library_path):
-    """Save configuration including voice library path"""
     config = {
         'voice_library_path': voice_library_path,
         'last_updated': str(Path().resolve())  # timestamp
@@ -80,7 +75,6 @@ def save_config(voice_library_path):
         return f"❌ Error saving configuration: {str(e)}"
     
 def update_voice_library_path(new_path):
-    """Update the voice library path and save to config"""
     if not new_path.strip():
         return (
             DEFAULT_VOICE_LIBRARY,
@@ -102,7 +96,6 @@ def update_voice_library_path(new_path):
     )
 
 def load_voice_profile(voice_library_path, voice_name):
-    """Load a voice profile and return its settings"""
     if not voice_name:
         return None, 0.5, 0.5, 0.8, "", "", "", "❌ No voice selected"
     
@@ -135,8 +128,18 @@ def load_voice_profile(voice_library_path, voice_name):
     except Exception as e:
         return None, 0.5, 0.5, 0.8, 0.05, 1.0, 1.2, f"❌ Error loading voice profile: {str(e)}"
 
+def load_voice_profile_audio(voice_library_path, voice_name):
+    if not voice_name or voice_name == "Manual Input (Upload Audio)":
+        return gr.update(value=None)
+
+    audio_file, *_ = load_voice_profile(voice_library_path, voice_name)
+
+    if audio_file is None:
+        return gr.update()
+
+    return gr.update(value=audio_file)
+
 def delete_voice_profile(voice_library_path, voice_name):
-    """Delete a voice profile"""
     if not voice_name or voice_name == "Manual Input (Upload Audio)":
         return "❌ No voice selected", gr.update()
     
@@ -149,17 +152,8 @@ def delete_voice_profile(voice_library_path, voice_name):
             return f"❌ Error deleting voice profile: {str(e)}", gr.update()
     else:
         return f"❌ Voice profile '{voice_name}' not found", gr.update()
-def analyze_audio_level(audio_data, sample_rate=24000):
-    """
-    Analyze the audio level and return various volume metrics.
     
-    Args:
-        audio_data: Audio array (numpy array)
-        sample_rate: Sample rate of the audio
-        
-    Returns:
-        dict: Dictionary with volume metrics
-    """
+def analyze_audio_level(audio_data, sample_rate=24000):
     try:
         # Convert to numpy if it's a tensor
         if hasattr(audio_data, 'cpu'):
@@ -211,18 +205,6 @@ def analyze_audio_level(audio_data, sample_rate=24000):
         return {'rms_db': -40.0, 'peak_db': -20.0, 'lufs': -23.0, 'duration': 0.0}
 
 def normalize_audio_to_target(audio_data, current_level_db, target_level_db, method='rms'):
-    """
-    Normalize audio to a target decibel level.
-    
-    Args:
-        audio_data: Audio array to normalize
-        current_level_db: Current level in dB
-        target_level_db: Target level in dB
-        method: Method to use ('rms', 'peak', or 'lufs')
-        
-    Returns:
-        numpy.ndarray: Normalized audio data
-    """
     try:
         # Convert to numpy if it's a tensor
         if hasattr(audio_data, 'cpu'):
@@ -249,7 +231,6 @@ def normalize_audio_to_target(audio_data, current_level_db, target_level_db, met
         return audio_data
 
 def save_voice_profile(voice_library_path, voice_name, display_name, description, audio_file, exaggeration, cfg_weight, temperature, enable_normalization=False, target_level_db=-18.0):
-    """Save a voice profile with its settings and optional volume normalization"""
     if not voice_name:
         return "❌ Error: Voice name cannot be empty"
     

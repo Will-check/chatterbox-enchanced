@@ -7,7 +7,7 @@ from gradio_app.models.tts_model import get_or_load_model
 
 
 def build_voice_library_tab(voice_library_path_state):
-    with gr.Tab("📚 Voice Library", id="voice_library_tab"):
+    with gr.Tab("📚 Voice Library", id="voice_library_tab") as vl_tab:
         with gr.Row():
             with gr.Column(scale=1):
                 gr.HTML("<h3>🎭 Voice Management</h3>")
@@ -193,4 +193,11 @@ def build_voice_library_tab(voice_library_path_state):
             fn=vl.refresh_voice_choices,
             inputs=voice_library_path_state,
             outputs=[voice_dropdown]
-        )    
+        )
+
+    vl_tab.select(
+        fn=vl.refresh_voice_choices,
+        inputs=voice_library_path_state,
+        outputs=voice_dropdown,
+        show_progress=False
+    )
