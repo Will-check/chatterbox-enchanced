@@ -1,6 +1,7 @@
 import gradio as gr
 from chatterbox.mtl_tts import SUPPORTED_LANGUAGES
 from gradio_app.logic.common import DEFAULT_VOICE_LIBRARY
+from gradio_app.logic.voice_lib import refresh_voice_choices, load_voice_profile_audio
 from gradio_app.ui.tabs.text_to_speech import build_text_to_speech_tab
 from gradio_app.ui.tabs.voice_lib import build_voice_library_tab
 # from ui.tab_audiobook_single import build_single_tab
@@ -25,18 +26,28 @@ def get_supported_languages_display() -> str:
 {line2}
 """
 
-def build_ui():
-    with gr.Blocks() as demo:
-        gr.Markdown("Chatterbox Multilingual Demo")
-        gr.Markdown(get_supported_languages_display())
+def build_ui(demo):
+    gr.Markdown("Chatterbox Multilingual Demo")
+    gr.Markdown(get_supported_languages_display())
 
-        voice_library_path_state = gr.State(DEFAULT_VOICE_LIBRARY)
-    
-        with gr.Tabs() as tabs:
-            build_text_to_speech_tab(voice_library_path_state)
-            build_voice_library_tab(voice_library_path_state)
-        #     build_single_tab()
-        #     build_multi_tab()
-        #     build_production_tab()
-        
-    return demo
+    voice_library_path_state = gr.State(DEFAULT_VOICE_LIBRARY)
+
+    with gr.Tabs() as tabs:
+        ref_audio, tts_voice_dropdown = build_text_to_speech_tab(voice_library_path_state)
+        build_voice_library_tab(voice_library_path_state)
+    #     build_single_tab()
+    #     build_multi_tab()
+    #     build_production_tab()
+
+    demo.load(
+        fn=refresh_voice_choices,
+        inputs=voice_library_path_state,
+        outputs=tts_voice_dropdown,
+        show_progress=False
+    )
+    demo.load(
+        fn=load_voice_profile_audio,
+        inputs=[voice_library_path_state, tts_voice_dropdown],
+        outputs=ref_audio,
+        show_progress=False
+    )

@@ -83,10 +83,13 @@ def build_text_to_speech_tab(voice_library_path_state):
             ],
             outputs=[audio_output],
         )
-            
-    tts_tab.select(
-        fn=refresh_voice_choices,
-        inputs=voice_library_path_state,
-        outputs=voice_dropdown,
-        show_progress=False
-    )
+        
+    if voice_library_path_state is not None:
+        tts_tab.select(
+            fn=refresh_voice_choices,
+            inputs=voice_library_path_state,
+            outputs=voice_dropdown,
+            show_progress=False
+        )
+
+    return ref_audio, voice_dropdown
