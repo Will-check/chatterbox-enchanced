@@ -47,6 +47,23 @@ def build_text_to_speech_tab(voice_library_path_state):
                     0.2, 1, step=.05, label="CFG/Pace", value=0.5
                 )
 
+                enable_trim = gr.Checkbox(
+                    value=False,
+                    label="Enable Silence Trimming",
+                    info="Enable to cut silence and noise at the start/end of audio."
+                )
+
+                trim_db = gr.Slider(
+                    minimum=10,
+                    maximum=60,
+                    value=30,
+                    step=1,
+                    interactive=True,
+                    visible=False,
+                    label="Silence Trim Threshold (top_db)",
+                    info="Higher = less trimming, Lower = stronger trimming"
+                )
+
                 with gr.Accordion("More options", open=False):
                     seed_num = gr.Number(value=0, label="Random seed (0 for random)")
                     temp = gr.Slider(0.05, 5, step=.05, label="Temperature", value=.8)
@@ -58,7 +75,7 @@ def build_text_to_speech_tab(voice_library_path_state):
 
         language_id.change(
             fn=on_language_change,
-            inputs=[language_id, ref_audio, text],
+            inputs=[language_id, ref_audio],
             outputs=[ref_audio, text],
             show_progress=False
         )
@@ -68,6 +85,12 @@ def build_text_to_speech_tab(voice_library_path_state):
             inputs=[voice_library_path_state, voice_dropdown],
             outputs=ref_audio,
             show_progress=False
+        )
+
+        enable_trim.change(
+            fn=lambda enabled: gr.update(visible=enabled),
+            inputs=enable_trim,
+            outputs=trim_db
         )
 
         run_btn.click(
@@ -80,6 +103,8 @@ def build_text_to_speech_tab(voice_library_path_state):
                 temp,
                 seed_num,
                 cfg_weight,
+                trim_db,
+                enable_trim
             ],
             outputs=[audio_output],
         )
