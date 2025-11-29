@@ -154,6 +154,27 @@ def build_audiobook_single_tab(voice_library_path_state):
                     .chunk-center > * {
                         margin: 0 auto !important;
                     }
+                        
+                    /* cell with chunk text – smaller padding */
+                    #audio-parts-table .chunk-text-cell {
+                        padding: 2px 4px;
+                    }
+                        
+                    /* textarea in chunk text cell – remove thick border/margins */
+                    #audio-parts-table .chunk-text-box textarea {
+                        padding: 2px 4px;
+                        border: none !important;
+                        box-shadow: none !important;
+                        border-radius: 0 !important;
+                        min-height: 2.2em;
+                        font-size: 0.9rem;
+                    }
+                        
+                    /* remove extra padding/margin around textbox wrapper */
+                    #audio-parts-table .chunk-text-box {
+                        padding: 0;
+                        margin: 0;
+                    }
                 </style>
                 <h4>Audio Parts</h4>
                 """)
@@ -220,14 +241,19 @@ def build_audiobook_single_tab(voice_library_path_state):
                                 elem_id=f"chunk-regen-{row_index}",
                                 elem_classes=["chunk-center"],
                             )
-                        # Chunk Text
-                        with gr.Column(scale=16, min_width=400, elem_classes=["parts-cell"]):
+                        # Chunk text
+                        with gr.Column(
+                            scale=16,
+                            min_width=400,
+                            elem_classes=["parts-cell", "chunk-text-cell"],
+                        ):
                             text_comp = gr.Textbox(
                                 label="",
                                 lines=2,
                                 interactive=False,
                                 show_label=False,
                                 elem_id=f"chunk-text-{row_index}",
+                                elem_classes=["chunk-text-box"],
                             )
 
                     part_rows.append(
