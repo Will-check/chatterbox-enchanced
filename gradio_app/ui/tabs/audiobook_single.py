@@ -175,6 +175,15 @@ def build_audiobook_single_tab(voice_library_path_state):
                         padding: 0;
                         margin: 0;
                     }
+                    
+                    /* Remove gray background for Play / Regenerate buttons */
+                    #audio-parts-table .parts-cell button {
+                        background-color: transparent !important;  /* brak szarego prostokąta */
+                        border: none !important;
+                        box-shadow: none !important;
+                        padding: 0 !important;
+                        min-width: 0 !important;
+                    }
                 </style>
                 <h4>Audio Parts</h4>
                 """)
