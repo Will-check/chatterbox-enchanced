@@ -39,6 +39,7 @@ with ui.column().classes('w-full px-5 gap-5'):
             options=['Chatterbox'], 
             value='Chatterbox',
             label='Select Model (Wybierz Model)',
+            on_change=lambda e: app_state.set_active_model(e.value)
         ).classes('w-48 ml-auto h-12 ml-6').props('dense outlined color=indigo clearable') 
 
     # 3. Content Panels
@@ -47,4 +48,4 @@ with ui.column().classes('w-full px-5 gap-5'):
         voice_library_tab(tab_lib)
         audiobook_creation_tab(tab_audio)
 
-ui.run(title='Text To Speech Interface')
+ui.run(title='Text To Speech Interface', host='0.0.0.0', port=7861)
