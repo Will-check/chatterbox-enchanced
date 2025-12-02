@@ -19,19 +19,14 @@ def single_generation_tab(tab_object: ui.tab):
 
         # Reset UI components
         if reference_audio_player_container and upload_component:
-            # Clear the player container
-            with reference_audio_player_container:
-                reference_audio_player_container.clear()
-            
-            # Hide player and show upload component
+            reference_audio_player_container.clear()
+            upload_component.reset()
             reference_audio_player_container.classes(add='hidden')
             upload_component.classes(remove='hidden')
-            
-            ui.notify('Reference audio cleared.', type='info', timeout=1500)
 
-    def handle_file_upload(e):
+    async def handle_file_upload(e):
         client_id = e.client.id
-        file_name = f'ref_{client_id}_{e.name}'
+        file_name = f'ref_{client_id}_{e.file.name}'
 
         # Clean up old file if it exists (simple session management)
         if client_id in temp_audio_files and os.path.exists(temp_audio_files[client_id]):
@@ -44,10 +39,8 @@ def single_generation_tab(tab_object: ui.tab):
 
         # Save the uploaded file chunk
         try:
-            with open(temp_filepath, 'wb') as f:
-                e.content.seek(0)
-                shutil.copyfileobj(e.content, f)
-
+            await e.file.save(temp_filepath)
+            
             temp_audio_files[client_id] = temp_filepath
             
             # Update the audio player container content
@@ -60,8 +53,7 @@ def single_generation_tab(tab_object: ui.tab):
                          ui.icon('clear', size='sm').classes('text-gray-500 hover:text-red-500 cursor-pointer') \
                             .tooltip('Clear reference audio').on('click', handle_reset)
 
-            
-            ui.notify(f'Reference file uploaded: {e.name}', type='positive', timeout=2000)
+            ui.notify(f'Reference file uploaded: {e.file.name}', type='positive', timeout=2000)
 
             # Hide the upload component visually and show the player container
             if upload_component and reference_audio_player_container:
