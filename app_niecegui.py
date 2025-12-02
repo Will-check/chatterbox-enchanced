@@ -2,9 +2,9 @@ from nicegui import ui
 from nicegui_app.ui.tabs.single_generation_tab import single_generation_tab
 from nicegui_app.ui.tabs.voice_library_tab import voice_library_tab
 from nicegui_app.ui.tabs.audiobook_creation_tab import audiobook_creation_tab
-from nicegui_app.logic.app_state import AppState
+from nicegui_app.logic.app_state import AppState, get_state
 
-app_state = AppState()
+app_state = get_state()
 
 with ui.column().classes('w-full px-5 gap-5'):
     
@@ -35,9 +35,12 @@ with ui.column().classes('w-full px-5 gap-5'):
             tab_audio = ui.tab('Audiobook Creation', icon='menu_book')
 
         # Dropdown Box (Right-aligned)
+        default_model = 'Chatterbox'
+        app_state.set_active_model(default_model)
+
         ui.select(
             options=['Chatterbox'], 
-            value='Chatterbox',
+            value=default_model,
             label='Select Model (Wybierz Model)',
             on_change=lambda e: app_state.set_active_model(e.value)
         ).classes('w-48 ml-auto h-12 ml-6').props('dense outlined color=indigo clearable') 
