@@ -4,12 +4,12 @@ import shutil
 import base64
 import time
 
+# Dictionary to manage temporary audio file paths per client session
 temp_audio_files = {}
 
 def single_generation_tab(tab_object: ui.tab):
     upload_component = None
     reference_audio_player_container = None
-    upload_success_label = None
 
     def handle_reset():
         client_id = ui.context.client.id
@@ -80,15 +80,15 @@ def single_generation_tab(tab_object: ui.tab):
             textarea {
                 resize: none !important;
             }
-                     
-            /* Hide arrows for Chrome, Safari, Edge, Opera */
+            
+            /* Hide arrows (spinners) for Chrome, Safari, Edge, Opera on number inputs */
             input[type=number]::-webkit-inner-spin-button, 
             input[type=number]::-webkit-outer-spin-button { 
                 -webkit-appearance: none;
                 margin: 0;
             }
 
-            /* Hide arrows for Firefox */
+            /* Hide arrows (spinners) for Firefox on number inputs */
             input[type=number] {
                 -moz-appearance: textfield;
             }
@@ -97,22 +97,10 @@ def single_generation_tab(tab_object: ui.tab):
 
     with ui.tab_panel(tab_object).classes('p-0 m-0 w-full'):
         with ui.row().classes('w-full p-6 gap-6 flex flex-wrap justify-start'):
-            # --- Left Column
+            # --- Left Column: Controls
             with ui.column().classes('w-full md:w-[calc(50%-12px)] flex-grow gap-6'):
-                # 1. First Border: Text Input and Language
+                # 1. Voice Profile, Reference Audio, and Sliders
                 with ui.column().classes('w-full p-4 border border-gray-200 rounded-xl gap-6'):
-                    # Text Input
-                    ui.label('Text to synthesize (max: chars 300)').classes('font-semibold text-gray-700')
-                    ui.textarea(placeholder='Enter text here...').props('rows=4 outlined dense') \
-                        .classes('w-full h-24 resize-none')
-                    
-                    # Language Dropdown
-                    ui.label('Language').classes('font-semibold text-gray-700')
-                    ui.select(options=['Polish', 'English', 'German'], value='English', label='Select Language') \
-                        .classes('w-full').props('outlined dense')
-
-                # 2. Second Border: Voice Profile, Reference Audio, and Sliders
-                with ui.column().classes('w-full p-4 border border-gray-200 rounded-xl mt-4 gap-6'):
                     ui.label('Saved Voice Profiles').classes('font-semibold text-gray-700')
                     ui.select(options=['Profile 1', 'Profile 2', 'Default'], value='Default', label='Select Profile') \
                         .classes('w-full mb-4').props('outlined dense')
@@ -145,17 +133,15 @@ def single_generation_tab(tab_object: ui.tab):
                         reference_audio_player_container = ui.row().classes('w-full hidden mt-2 p-2 border border-gray-200 rounded-xl bg-gray-50')
                             
                     # Sliders for Generation Control
-                    def create_labeled_slider(label_text, min_val, max_val, step, default_val):
-                        # Define the function that resets the slider and number input to the default value
+                    def create_labeled_slider(label_text, min_val, max_val, step, default_val):            
                         def reset_slider(target_slider, target_input, default_value):
                             target_slider.value = default_value
                             target_input.value = default_value
-                            ui.notify(f'Reset to default: {default_value}', type='info', timeout=1000)
 
                         with ui.column().classes('w-full mt-4 p-3 bg-gray-50 rounded-lg border border-gray-100'): 
                             with ui.row().classes('w-full items-center justify-between'):
                                 ui.label(label_text).classes('text-sm')
-    
+                                
                                 with ui.row().classes('items-center justify-end gap-1'): 
                                     number_input = ui.number(value=default_val, min=min_val, max=max_val, step=step, format='%.1f').classes('w-16').props('dense outlined')
                                     ui.icon('refresh', size='sm').classes('text-gray-500 hover:text-indigo-500 cursor-pointer') \
@@ -176,14 +162,30 @@ def single_generation_tab(tab_object: ui.tab):
                         with ui.row().classes('w-full items-center justify-between'):
                             ui.label('Seed (0 for random)').classes('text-sm') 
                         
-                        seed_input = ui.number(value=DEFAULT_SEED_VALUE, min=0, label='Seed Value').classes('w-full mt-2').props('dense outlined no-spinners') 
-
+                        seed_input = ui.number(value=DEFAULT_SEED_VALUE, min=0, step=1, label='Seed Value').classes('w-full mt-2').props('dense outlined no-spinners') 
+                        
                     create_labeled_slider('Temperature', 0.0, 1.0, 0.1, 0.8)
 
+            # --- Right Column: Input and Output
             with ui.column().classes('w-full md:w-[calc(50%-12px)] flex-grow gap-6'):
+                # Text Input, Language, Generate Button, Audio Output
                 with ui.column().classes('w-full p-4 border border-gray-200 rounded-xl gap-6'):
-                    ui.label('Output Audio').classes('font-semibold text-gray-700')
-                    ui.audio('').classes('w-full')
+                    
+                    # 1. Text Input Area
+                    ui.label('Text to synthesize (max: chars 300)').classes('font-semibold text-gray-700')
+                    ui.textarea(placeholder='Enter text here...').props('rows=4 outlined dense') \
+                        .classes('w-full h-24') 
+                    
+                    # 2. Language Dropdown
+                    ui.label('Language').classes('font-semibold text-gray-700')
+                    ui.select(options=['Polish', 'English', 'German'], value='English', label='Select Language') \
+                        .classes('w-full').props('outlined dense')
+
+                    # 3. Generate Button
                     ui.button('Generate', on_click=lambda: ui.notify('Starting generation...', type='info')) \
                         .classes('w-full h-12 text-white font-bold text-lg rounded-lg shadow-lg') \
                         .props('color=orange')
+                        
+                    # 4. Output Audio
+                    ui.label('Output Audio').classes('font-semibold text-gray-700')
+                    ui.audio('').classes('w-full')
