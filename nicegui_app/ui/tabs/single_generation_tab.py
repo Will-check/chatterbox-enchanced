@@ -73,6 +73,28 @@ def single_generation_tab(tab_object: ui.tab):
             # Ensure upload component is visible if saving fails
             upload_component.classes(remove='hidden')
 
+    # CSS to hide native browser features
+    ui.add_head_html("""
+        <style>
+            /* Disable the resize handle for all textarea elements, solving the user's request */
+            textarea {
+                resize: none !important;
+            }
+                     
+            /* Hide arrows for Chrome, Safari, Edge, Opera */
+            input[type=number]::-webkit-inner-spin-button, 
+            input[type=number]::-webkit-outer-spin-button { 
+                -webkit-appearance: none;
+                margin: 0;
+            }
+
+            /* Hide arrows for Firefox */
+            input[type=number] {
+                -moz-appearance: textfield;
+            }
+        </style>
+    """)
+
     with ui.tab_panel(tab_object).classes('p-0 m-0 w-full'):
         with ui.row().classes('w-full p-6 gap-6 flex flex-wrap justify-start'):
             # --- Left Column
@@ -119,32 +141,42 @@ def single_generation_tab(tab_object: ui.tab):
                                 ui.label('— or —').classes('text-sm text-gray-400')
                                 ui.label('CLICK TO UPLOAD').classes('text-sm font-semibold text-orange-500 cursor-pointer')
 
-
                         # 2. Dynamic Audio Player Container (Hidden initially)
                         reference_audio_player_container = ui.row().classes('w-full hidden mt-2 p-2 border border-gray-200 rounded-xl bg-gray-50')
                             
                     # Sliders for Generation Control
-                    
                     def create_labeled_slider(label_text, min_val, max_val, step, default_val):
-                        with ui.row().classes('w-full items-center justify-between mt-4'):
-                            ui.label(label_text).classes('text-sm w-3/5')
-                            with ui.row().classes('w-2/5 items-center justify-end'):
-                                slider = ui.slider(min=min_val, max=max_val, step=step, value=default_val).classes('flex-grow')
-                                number_input = ui.number(value=default_val, min=min_val, max=max_val, step=step, format='%.1f').classes('w-16 ml-2').props('dense outlined')
-                                
-                                slider.bind_value_to(number_input, 'value')
-                                number_input.bind_value_to(slider, 'value')
+                        # Define the function that resets the slider and number input to the default value
+                        def reset_slider(target_slider, target_input, default_value):
+                            target_slider.value = default_value
+                            target_input.value = default_value
+                            ui.notify(f'Reset to default: {default_value}', type='info', timeout=1000)
 
-                                # Optional: Add a refresh icon for reset (not implemented for actual reset logic)
-                                ui.icon('refresh', size='sm').classes('text-gray-500 hover:text-indigo-500 cursor-pointer')
+                        with ui.column().classes('w-full mt-4 p-3 bg-gray-50 rounded-lg border border-gray-100'): 
+                            with ui.row().classes('w-full items-center justify-between'):
+                                ui.label(label_text).classes('text-sm')
+    
+                                with ui.row().classes('items-center justify-end gap-1'): 
+                                    number_input = ui.number(value=default_val, min=min_val, max=max_val, step=step, format='%.1f').classes('w-16').props('dense outlined')
+                                    ui.icon('refresh', size='sm').classes('text-gray-500 hover:text-indigo-500 cursor-pointer') \
+                                        .on('click', lambda: reset_slider(slider, number_input, default_val))
+                            
+                            with ui.row().classes('w-full items-center pt-2'):
+                                slider = ui.slider(min=min_val, max=max_val, step=step, value=default_val).classes('w-full')
+                                
+                            slider.bind_value_to(number_input, 'value')
+                            number_input.bind_value_to(slider, 'value')
                         
                     create_labeled_slider('Exaggeration (Neutral = 0.5, extreme values can be unstable)', 0.0, 1.0, 0.1, 0.5)
                     create_labeled_slider('CFG/Pace', 0.0, 1.0, 0.1, 0.5)
                     create_labeled_slider('CFG/Peace', 0.0, 1.0, 0.1, 0.5)
                     
-                    with ui.row().classes('w-full items-center justify-between mt-4'):
-                        ui.label('Seed (0 for random)').classes('text-sm w-3/5')
-                        ui.number(value=0, min=0, step=1).classes('w-24').props('dense outlined') 
+                    DEFAULT_SEED_VALUE = 0
+                    with ui.column().classes('w-full mt-4 p-3 bg-gray-50 rounded-lg border border-gray-100'):
+                        with ui.row().classes('w-full items-center justify-between'):
+                            ui.label('Seed (0 for random)').classes('text-sm') 
+                        
+                        seed_input = ui.number(value=DEFAULT_SEED_VALUE, min=0, label='Seed Value').classes('w-full mt-2').props('dense outlined no-spinners') 
 
                     create_labeled_slider('Temperature', 0.0, 1.0, 0.1, 0.8)
 
