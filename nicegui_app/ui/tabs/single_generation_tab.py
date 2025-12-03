@@ -1,67 +1,7 @@
 from nicegui import ui
-import os
-
-# Dictionary to manage temporary audio file paths per client session
-temp_audio_files = {}
+from nicegui_app.ui.common import handle_file_upload
 
 def single_generation_tab(tab_object: ui.tab):
-    upload_component = None
-    reference_audio_player_container = None
-
-    def handle_reset():
-        client_id = ui.context.client.id
-        if client_id in temp_audio_files and os.path.exists(temp_audio_files[client_id]):
-            os.remove(temp_audio_files[client_id])
-            del temp_audio_files[client_id]
-
-        # Reset UI components
-        if reference_audio_player_container and upload_component:
-            reference_audio_player_container.clear()
-            upload_component.reset()
-            reference_audio_player_container.classes(add='hidden')
-            upload_component.classes(remove='hidden')
-
-    async def handle_file_upload(e):
-        client_id = e.client.id
-        file_name = f'ref_{client_id}_{e.file.name}'
-
-        # Clean up old file if it exists (simple session management)
-        if client_id in temp_audio_files and os.path.exists(temp_audio_files[client_id]):
-            os.remove(temp_audio_files[client_id])
-
-        # Create a temporary file path
-        temp_dir = 'temp_uploads'
-        os.makedirs(temp_dir, exist_ok=True)
-        temp_filepath = os.path.join(temp_dir, file_name)
-
-        # Save the uploaded file chunk
-        try:
-            await e.file.save(temp_filepath)
-            
-            temp_audio_files[client_id] = temp_filepath
-            
-            # Update the audio player container content
-            if reference_audio_player_container:
-                with reference_audio_player_container:
-                    reference_audio_player_container.clear() 
-                    
-                    with ui.row().classes('w-full items-center justify-between gap-2'):
-                         ui.audio(temp_filepath).classes('flex-grow')
-                         ui.icon('clear', size='sm').classes('text-gray-500 hover:text-red-500 cursor-pointer') \
-                            .tooltip('Clear reference audio').on('click', handle_reset)
-
-            ui.notify(f'Reference file uploaded: {e.file.name}', type='positive', timeout=2000)
-
-            # Hide the upload component visually and show the player container
-            if upload_component and reference_audio_player_container:
-                upload_component.classes('hidden')
-                reference_audio_player_container.classes(remove='hidden')
-        
-        except Exception as err:
-            ui.notify(f'Error saving file: {err}', type='negative')
-            # Ensure upload component is visible if saving fails
-            upload_component.classes(remove='hidden')
-
     with ui.tab_panel(tab_object).classes('p-0 m-0 w-full'):
         with ui.row().classes('w-full p-6 gap-6 flex flex-wrap justify-start'):
             # --- Left Column: Controls
@@ -78,7 +18,7 @@ def single_generation_tab(tab_object: ui.tab):
                     with ui.column().classes('w-full relative'):
                         # 1. Upload Component (Visible initially)
                         upload_component = ui.upload(
-                            on_upload=handle_file_upload,
+                            on_upload=lambda e: handle_file_upload(e, upload_component, reference_audio_player_container),
                             on_rejected=lambda: ui.notify('Invalid file format. Supported: MP3, WAV, FLAC.', type='negative'),
                             label='Drop Audio Here or Click to Upload',
                             max_files=1,
