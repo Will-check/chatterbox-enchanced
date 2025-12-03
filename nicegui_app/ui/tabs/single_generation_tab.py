@@ -62,7 +62,7 @@ def single_generation_tab(tab_object: ui.tab):
                     # 3. Generate Button
                     generate_button = ui.button('Generate', on_click=lambda: ui.notify('Starting generation...', type='info')) \
                         .classes('w-full h-12 text-white font-bold text-lg rounded-lg shadow-lg') \
-                        .props('color=orange')
+                        .props('color=indigo')
                     
                     generate_button.bind_enabled_from(
                         app_state, 

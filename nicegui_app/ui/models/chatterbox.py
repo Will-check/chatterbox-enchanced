@@ -25,12 +25,13 @@ def chatterbox_controls():
                         upload_component.props('hide-upload-button multiple accept=".mp3,.wav,.flac,audio/*" color=grey flat')
                         upload_component.style('border: 2px dashed #9ca3af; border-radius: 0.75rem; padding: 0.5rem;')
 
-                        with upload_component.add_slot('default'):
-                            with ui.column().classes('w-full h-full items-center justify-center text-gray-500 gap-1'):
-                                ui.icon('cloud_upload', size='xl').classes('text-gray-400')
-                                ui.label('Drop Audio Here').classes('text-base')
-                                ui.label('— or —').classes('text-sm text-gray-400')
-                                ui.label('CLICK TO UPLOAD').classes('text-sm font-semibold text-orange-500 cursor-pointer')
+                        # TODO: Fix it it doesnt replace default style of the upload button
+                        # with upload_component.add_slot('default'):
+                        #     with ui.column().classes('w-full h-full items-center justify-center text-gray-500 gap-1'):
+                        #         ui.icon('cloud_upload', size='xl').classes('text-gray-400')
+                        #         ui.label('Drop Audio Here').classes('text-base')
+                        #         ui.label('— or —').classes('text-sm text-gray-400')
+                        #         ui.label('CLICK TO UPLOAD').classes('text-sm font-semibold text-orange-500 cursor-pointer')
 
                         # 2. Dynamic Audio Player Container (Hidden initially)
                         reference_audio_player_container = ui.row().classes('w-full hidden mt-2 p-2 border border-gray-200 rounded-xl bg-gray-50')
@@ -51,7 +52,7 @@ def chatterbox_controls():
                                         .on('click', lambda: reset_slider(slider, number_input, default_val))
                             
                             with ui.row().classes('w-full items-center'):
-                                slider = ui.slider(min=min_val, max=max_val, step=step, value=default_val).classes('w-full').props('color=orange')
+                                slider = ui.slider(min=min_val, max=max_val, step=step, value=default_val).classes('w-full').props('color=indigo')
                                 
                             slider.bind_value_to(number_input, 'value')
                             number_input.bind_value_to(slider, 'value')

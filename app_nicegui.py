@@ -1,6 +1,5 @@
 from nicegui import ui
 from nicegui_app.ui.tabs.single_generation_tab import single_generation_tab
-from nicegui_app.ui.tabs.voice_library_tab import voice_library_tab
 from nicegui_app.ui.tabs.audiobook_creation_tab import audiobook_creation_tab
 from nicegui_app.logic.app_state import AppState, get_state
 
@@ -57,7 +56,6 @@ with ui.column().classes('w-full px-5 gap-5'):
                 .props('active-color=indigo indicator-color=indigo align=left inline-label') as tabs:
             
             tab_gen = ui.tab('Single Generation', icon='mic')
-            tab_lib = ui.tab('Voice Library', icon='library_books')
             tab_audio = ui.tab('Audiobook Creation', icon='menu_book')
 
         # Dropdown Box (Right-aligned)
@@ -78,9 +76,8 @@ with ui.column().classes('w-full px-5 gap-5'):
         ).classes('w-48 ml-auto h-12 ml-6').props('dense outlined color=indigo') 
 
     # 3. Content Panels
-    with ui.tab_panels(tabs, value=tab_gen).classes('w-full'):
+    with ui.tab_panels(tabs, value=tab_audio).classes('w-full'):
         single_generation_tab(tab_gen)
-        voice_library_tab(tab_lib)
         audiobook_creation_tab(tab_audio)
 
 ui.run(title='Text To Speech Interface', host='0.0.0.0', port=7861)
