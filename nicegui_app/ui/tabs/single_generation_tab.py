@@ -1,11 +1,40 @@
 from nicegui import ui
 from nicegui_app.ui.common import handle_file_upload
+from nicegui_app.logic.app_state import get_state
 
 def single_generation_tab(tab_object: ui.tab):
+    app_state = get_state()
+    is_chatterbox_selected = lambda v: v == 'Chatterbox'
+    is_no_model_selected = lambda v: v == 'No Model Selected'
+    is_any_model_selected = lambda v: v != 'No Model Selected'
+
     with ui.tab_panel(tab_object).classes('p-0 m-0 w-full'):
         with ui.row().classes('w-full p-6 gap-6 flex flex-wrap justify-start'):
-            # --- Left Column: Controls
-            with ui.column().classes('w-full md:w-[calc(50%-12px)] flex-grow gap-6'):
+            left_column_chatterbox = ui.column().classes('w-full md:w-[calc(50%-12px)] flex-grow gap-6')
+            left_column_no_model = ui.column().classes('w-full md:w-[calc(50%-12px)] flex-grow gap-6')
+
+            left_column_chatterbox.bind_visibility_from(
+                app_state, 
+                'active_model', 
+                is_chatterbox_selected 
+            )
+
+            left_column_no_model.bind_visibility_from(
+                app_state, 
+                'active_model', 
+                is_no_model_selected 
+            )
+
+            # --- Left Column: Empty - no model selected
+            with left_column_no_model:
+                with ui.column().classes('w-full p-4 border border-gray-200 rounded-xl gap-6 items-center justify-center min-h-[400px]'):
+                    ui.icon('info', size='2xl').classes('text-orange-500')
+                    ui.label('No Model Selected').classes('font-bold text-xl text-gray-700')
+                    ui.label('Please select a valid model from the dropdown menu to enable specific controls.') \
+                        .classes('text-gray-500 text-center')
+                        
+            # --- Left Column: Controls for Chatterbox
+            with left_column_chatterbox:
                 # 1. Voice Profile, Reference Audio, and Sliders
                 with ui.column().classes('w-full p-4 border border-gray-200 rounded-xl gap-6'):
                     ui.label('Saved Voice Profiles').classes('font-semibold text-gray-700')
@@ -55,7 +84,7 @@ def single_generation_tab(tab_object: ui.tab):
                                         .on('click', lambda: reset_slider(slider, number_input, default_val))
                             
                             with ui.row().classes('w-full items-center'):
-                                slider = ui.slider(min=min_val, max=max_val, step=step, value=default_val).classes('w-full')
+                                slider = ui.slider(min=min_val, max=max_val, step=step, value=default_val).classes('w-full').props('color=orange')
                                 
                             slider.bind_value_to(number_input, 'value')
                             number_input.bind_value_to(slider, 'value')
@@ -70,9 +99,7 @@ def single_generation_tab(tab_object: ui.tab):
                         with ui.row().classes('w-full items-center justify-between'):
                             ui.label('Seed (0 for random)').classes('text-sm') 
                         
-                        seed_input = ui.number(value=DEFAULT_SEED_VALUE, min=0, step=1, label='Seed Value').classes('w-full').props('dense outlined no-spinners') 
-                        
-
+                        ui.number(value=DEFAULT_SEED_VALUE, min=0, step=1, label='Seed Value').classes('w-full').props('dense outlined no-spinners') 
 
             # --- Right Column: Input and Output
             with ui.column().classes('w-full md:w-[calc(50%-12px)] flex-grow gap-6'):
@@ -90,10 +117,16 @@ def single_generation_tab(tab_object: ui.tab):
                         .classes('w-full').props('outlined dense')
 
                     # 3. Generate Button
-                    ui.button('Generate', on_click=lambda: ui.notify('Starting generation...', type='info')) \
+                    generate_button = ui.button('Generate', on_click=lambda: ui.notify('Starting generation...', type='info')) \
                         .classes('w-full h-12 text-white font-bold text-lg rounded-lg shadow-lg') \
                         .props('color=orange')
-                        
+                    
+                    generate_button.bind_enabled_from(
+                        app_state, 
+                        'active_model', 
+                        is_any_model_selected
+                    )
+
                     # 4. Output Audio
                     ui.label('Output Audio').classes('font-semibold text-gray-700')
                     ui.audio('').classes('w-full')
