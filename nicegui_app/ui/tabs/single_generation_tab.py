@@ -1,8 +1,5 @@
 from nicegui import ui
 import os
-import shutil
-import base64
-import time
 
 # Dictionary to manage temporary audio file paths per client session
 temp_audio_files = {}
@@ -64,28 +61,6 @@ def single_generation_tab(tab_object: ui.tab):
             ui.notify(f'Error saving file: {err}', type='negative')
             # Ensure upload component is visible if saving fails
             upload_component.classes(remove='hidden')
-
-    # CSS to hide native browser features
-    ui.add_head_html("""
-        <style>
-            /* Disable the resize handle for all textarea elements, solving the user's request */
-            textarea {
-                resize: none !important;
-            }
-            
-            /* Hide arrows (spinners) for Chrome, Safari, Edge, Opera on number inputs */
-            input[type=number]::-webkit-inner-spin-button, 
-            input[type=number]::-webkit-outer-spin-button { 
-                -webkit-appearance: none;
-                margin: 0;
-            }
-
-            /* Hide arrows (spinners) for Firefox on number inputs */
-            input[type=number] {
-                -moz-appearance: textfield;
-            }
-        </style>
-    """)
 
     with ui.tab_panel(tab_object).classes('p-0 m-0 w-full'):
         with ui.row().classes('w-full p-6 gap-6 flex flex-wrap justify-start'):

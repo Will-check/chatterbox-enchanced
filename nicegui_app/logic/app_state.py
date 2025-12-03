@@ -1,4 +1,3 @@
-from nicegui import app
 from nicegui import ui 
 
 # A class to hold shared application state
@@ -14,9 +13,14 @@ class AppState:
         
         ui.notify(f'Active model set to: {self.active_model}', type='info', timeout=1500)
 
+    def to_json(self):
+        return {
+            'active_model': self.active_model,
+        }
+
 # Initialize the global state instance
-app.storage.general['app_state'] = AppState()
+app_state = AppState()
 
 def get_state() -> AppState:
-    return app.storage.general['app_state']
+    return app_state
 
