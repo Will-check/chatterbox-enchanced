@@ -2,7 +2,6 @@ from nicegui import ui
 from nicegui_app.ui.common import handle_file_upload
 
 def chatterbox_controls():
-     # 1. Voice Profile, Reference Audio, and Sliders
     with ui.column().classes('w-full p-4 border border-gray-200 rounded-xl gap-6'):
         ui.label('Saved Voice Profiles').classes('font-semibold text-gray-700 w-full text-center')
         ui.select(options=['Profile 1', 'Profile 2', 'Default'], value='Default', label='Select Profile') \
@@ -14,8 +13,6 @@ def chatterbox_controls():
             # Grouping container to keep both UI and functional elements together.
             uploader_container = ui.element('div').classes('relative w-full h-40 group')
 
-            # Kontener odtwarzacza audio jest tutaj tworzony, ale początkowo pozostaje ukryty.
-            # Jest przekazywany do handlera, aby został pokazany po przesłaniu.
             reference_audio_player_container = ui.row().classes('w-full mt-2 p-2 border border-gray-200 rounded-xl bg-gray-50')
             reference_audio_player_container.visible = False
 
@@ -24,11 +21,11 @@ def chatterbox_controls():
                 with ui.column().classes(
                     'w-full h-full border-2 border-dashed border-slate-300 rounded-lg '
                     'items-center justify-center bg-slate-50 transition-colors '
-                    'group-hover:bg-slate-100 group-hover:border-slate-400'
+                    'group-hover:bg-slate-100 group-hover:border-slate-400 gap-1'
                 ):
-                    ui.icon('cloud_upload', size='2rem', color='slate-400').classes('mb-2 transition-transform group-hover:scale-110')
+                    ui.icon('cloud_upload', size='2rem', color='slate-400').classes('transition-transform group-hover:scale-110')
                     ui.label('Drop Audio Here').classes('text-slate-500 text-base font-medium')
-                    ui.label('- or -').classes('text-slate-300 text-xs my-1')
+                    ui.label('- or -').classes('text-slate-300 text-xs')
                     ui.label('CLICK TO UPLOAD').classes('font-bold text-orange-500 text-sm')
 
                 # Functional layer

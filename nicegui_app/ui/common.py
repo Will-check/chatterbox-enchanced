@@ -22,6 +22,9 @@ async def handle_file_upload(e, upload_component, reference_audio_player_contain
     client_id = e.client.id
     file_name = f'ref_{client_id}_{e.file.name}'
 
+    # Reset the upload component
+    e.sender.reset()
+
     # Clean up old file if it exists (simple session management)
     if client_id in temp_audio_files and os.path.exists(temp_audio_files[client_id]):
         os.remove(temp_audio_files[client_id])
