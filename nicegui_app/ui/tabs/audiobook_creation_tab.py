@@ -7,7 +7,6 @@ def detect_speakers(textarea_ref: ui.textarea,
                     voice_options: list,
                     single_voice_select: ui.select):
     script = textarea_ref.value
-    # Regex to find text inside brackets at the start of a line, e.g., [SpeakerName]
     speaker_tags = set(re.findall(r'^\s*\[([A-Za-z0-9\s]+)\]', script, re.MULTILINE))
     
     new_speakers = {}
@@ -53,7 +52,6 @@ def remove_speaker(row_to_remove: ui.row, list_container: ui.column, single_voic
     if not list_container.default_slot.children:
         reset_speakers(list_container, single_voice_select, results_container)
 
-# Helper function to create a speaker row for the Speakers list
 def speaker_row(speaker_name: str,
                 voice_options: list,
                 default_voice: str,
@@ -93,9 +91,8 @@ def audiobook_creation_tab(tab_object: ui.tab):
                 ).classes('flex-grow').props('outlined dense color=indigo')
 
             with ui.row().classes('w-full gap-6 flex flex-wrap justify-start'):
-                # --- Left Column: Text 
                 with ui.column().classes('w-full md:w-[calc(50%-12px)] flex-grow gap-4'):
-                    with ui.card().classes('w-full p-4 border border-gray-200 rounded-xl shadow-none'):
+                    with ui.card().classes('w-full h-[460px] p-4 border border-gray-200 rounded-xl shadow-none'):
                         ui.label('Text to synthesize').classes('font-semibold text-gray-700')
                         text_input = ui.textarea(
                             value='[Narrator] In a dark forest, full of mysteries, stood a small house.\n \
@@ -108,11 +105,10 @@ def audiobook_creation_tab(tab_object: ui.tab):
 [NARRATOR2] Suddenly, a quiet rustle was heard\n. \
 [Alice2] Who is there?',  
                             placeholder='Enter text here...',
-                        ).classes('w-full').props('rows=20 outlined dense')
+                        ).classes('w-full h-full').props('rows=20 outlined dense resize-none')
                         
-                # --- Right Column: Speakers & Voices 
                 with ui.column().classes('w-full md:w-[calc(50%-12px)] flex-grow gap-4'):
-                    with ui.card().classes('w-full p-4 border border-gray-200 rounded-xl shadow-none gap-4'):
+                    with ui.card().classes('w-full h-[460px] p-4 border border-gray-200 rounded-xl shadow-none gap-4'):
                         ui.button('Detect Speakers', 
                                     on_click=lambda: detect_speakers(text_input, speaker_list_container, results_container, voice_options, single_voice_select)
                                 ).classes('w-full h-10 font-bold text-sm rounded-lg shadow-md') \
@@ -127,7 +123,7 @@ def audiobook_creation_tab(tab_object: ui.tab):
                         with results_container:
                             ui.label('Speakers list:').classes('font-semibold text-gray-700 mt-4')
                             
-                            with ui.scroll_area().classes('w-full h-64 border border-gray-200 rounded-md p-2'):
+                            with ui.scroll_area().classes('w-full h-52 border border-gray-200 rounded-md p-2'):
                                 speaker_list_container = ui.column().classes('w-full gap-1')
                             ui.button('Remove speakers', 
                                 on_click=lambda: reset_speakers(speaker_list_container, single_voice_select, results_container),
