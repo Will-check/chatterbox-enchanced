@@ -15,9 +15,8 @@ def handle_reset(upload_component, reference_audio_player_container):
     # Reset UI components
     if reference_audio_player_container and upload_component:
         reference_audio_player_container.clear()
-        upload_component.reset()
-        reference_audio_player_container.classes(add='hidden')
-        upload_component.classes(remove='hidden')
+        reference_audio_player_container.visible = False
+        upload_component.visible = True
 
 async def handle_file_upload(e, upload_component, reference_audio_player_container):
     client_id = e.client.id
@@ -35,14 +34,13 @@ async def handle_file_upload(e, upload_component, reference_audio_player_contain
     # Save the uploaded file chunk
     try:
         await e.file.save(temp_filepath)
-        
+
         temp_audio_files[client_id] = temp_filepath
-        
+
         # Update the audio player container content
         if reference_audio_player_container:
             with reference_audio_player_container:
-                reference_audio_player_container.clear() 
-                
+                reference_audio_player_container.clear()
                 with ui.row().classes('w-full items-center justify-between gap-2'):
                         ui.audio(temp_filepath).classes('flex-grow')
                         ui.icon('clear', size='sm').classes('text-gray-500 hover:text-red-500 cursor-pointer') \
@@ -50,12 +48,10 @@ async def handle_file_upload(e, upload_component, reference_audio_player_contain
 
         ui.notify(f'Reference file uploaded: {e.file.name}', type='positive', timeout=2000)
 
-        # Hide the upload component visually and show the player container
         if upload_component and reference_audio_player_container:
-            upload_component.classes('hidden')
-            reference_audio_player_container.classes(remove='hidden')
-    
+            upload_component.visible = False
+            reference_audio_player_container.visible = True
+
     except Exception as err:
         ui.notify(f'Error saving file: {err}', type='negative')
-        # Ensure upload component is visible if saving fails
-        upload_component.classes(remove='hidden')
+        upload_component.visible = True

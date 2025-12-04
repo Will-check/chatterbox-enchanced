@@ -1,6 +1,88 @@
 from nicegui import ui
 import re
 
+def generate_lines_list(text_area: ui.textarea, 
+                        lines_container: ui.column, 
+                        voice_options: list,
+                        speaker_list_container: ui.column):
+    
+    # 1. Build speaker-voice map from the UI elements in speaker_list_container
+    speaker_voice_map = {}
+    if hasattr(speaker_list_container, 'default_slot'):
+        for row in speaker_list_container.default_slot.children:
+            speaker_label = None
+            voice_select = None
+            for child in row.default_slot.children:
+                if isinstance(child, ui.label):
+                    speaker_label = child
+                elif isinstance(child, ui.select):
+                    voice_select = child
+            
+            if speaker_label and voice_select:
+                speaker_name = speaker_label.text # Already capitalized by detect_speakers
+                selected_voice = voice_select.value
+                speaker_voice_map[speaker_name] = selected_voice
+
+    lines_container.clear()
+    script = text_area.value.strip()
+
+    if not script:
+        ui.notify("Text area is empty.", type='warning')
+        return
+
+    lines = script.split('\n')
+    
+    has_speaker_tags = any(re.match(r'^\s*\[([A-Za-z0-9\s]+)\]', line) for line in lines)
+    if not has_speaker_tags:
+        ui.notify("No speaker tags found in the format [Speaker]. Cannot generate lines list.", type='warning')
+        return
+
+    with lines_container:
+        ui.label('Generated lines list:').classes('text-lg font-semibold')
+        
+        # Define grid layout
+        cols = "auto 130px minmax(150px, 1fr) auto auto 110px 3fr"
+        with ui.grid(columns=cols).classes('w-full items-center gap-x-4'):
+            # Header
+            ui.label('Exclude').classes('font-bold text-center')
+            ui.label('Speaker').classes('font-bold text-center')
+            ui.label('Voice (dropdown)').classes('font-bold text-center')
+            ui.label('▶ Play').classes('font-bold text-center')
+            ui.label('🔁 Regenerate').classes('font-bold text-center')
+            ui.label('Pause [s]').classes('font-bold text-center')
+            ui.label('Line text').classes('font-bold text-left')
+            
+            # Header separator
+            ui.separator().classes('col-span-full my-1')
+
+            # Data Rows
+            for line in lines:
+                line = line.strip()
+                if not line:
+                    continue
+
+                match = re.match(r'^\s*\[([A-Za-z0-9\s]+)\]\s*(.*)', line)
+                if match:
+                    speaker, text = [x.strip() for x in match.groups()]
+                    speaker_capitalized = speaker.capitalize()
+                    
+                    assigned_voice = speaker_voice_map.get(speaker_capitalized, voice_options[0])
+
+                    # Grid cells for a single line
+                    with ui.row().classes('w-full justify-center'): ui.checkbox()
+                    ui.label(speaker).classes('text-center')
+                    ui.select(options=voice_options, value=assigned_voice).classes('w-full').props('outlined dense')
+                    with ui.row().classes('w-full justify-center'): ui.button(icon='play_arrow', on_click=lambda s=text: ui.notify(f'Play: {s[:30]}...')).props('flat round color=primary')
+                    with ui.row().classes('w-full justify-center'): ui.button(icon='sync', on_click=lambda s=speaker: ui.notify(f'Regenerate for {s}')).props('flat round color=secondary')
+                    ui.number(value=0.5, format='%.1f', step=0.1, min=0).classes('w-full').props('outlined dense')
+                    ui.label(text).classes('text-left')
+                    
+                    # Separator for each line
+                    ui.separator().classes('col-span-full')
+
+    ui.notify("Generated new audio parts list.", type='positive')
+
+
 def detect_speakers(textarea_ref: ui.textarea,
                     speaker_list_container: ui.column,
                     results_container: ui.column,
@@ -79,8 +161,6 @@ def speaker_row(speaker_name: str,
 def audiobook_creation_tab(tab_object: ui.tab):
     voice_options = ['','Voice A (M)', 'Voice B (F)', 'Voice C (Child)']
     
-    initial_speakers = {}
-
     with ui.tab_panel(tab_object).classes('p-0 m-0 w-full'):
         with ui.column().classes('w-full p-6 gap-6'):
             with ui.row().classes('w-full p-4 border border-gray-200 rounded-xl shadow-md gap-4 items-center'):
@@ -95,24 +175,17 @@ def audiobook_creation_tab(tab_object: ui.tab):
                     with ui.card().classes('w-full h-[460px] p-4 border border-gray-200 rounded-xl shadow-none'):
                         ui.label('Text to synthesize').classes('font-semibold text-gray-700 w-full text-center')
                         text_input = ui.textarea(
-                            value='[Narrator] In a dark forest, full of mysteries, stood a small house.\n \
-[Alice] Is this where the forest sprite lives?\n \
-[Boris] I don\'t think so. Let\'s ask.\n \
-[NARRATOR] Suddenly, a quiet rustle was heard\n. \
-[Alice] Who is there?\n \
-[Alice2] Is this where the forest sprite lives?\n \
-[Boris2] I don\'t think so. Let\'s ask.\n \
-[NARRATOR2] Suddenly, a quiet rustle was heard\n. \
-[Alice2] Who is there?',  
-                            placeholder='Enter text here...',
-                        ).classes('w-full h-full').props('rows=20 outlined dense resize-none')
+                            value='[Narrator] In a dark forest, full of mysteries, stood a small house.\n'
+                                  '[Alice] Is this where the forest sprite lives?\n'
+                                  '[Boris] I don\'t think so. Let\'s ask.\n'
+                                  '[NARRATOR] Suddenly, a quiet rustle was heard.\n'
+                                  '[Alice] Who is there?',
+                            placeholder='Enter text here in the format [Speaker] Text...',
+                        ).classes('w-full h-full').props('rows=20 outlined dense')
                         
                 with ui.column().classes('w-full md:w-[calc(50%-12px)] flex-grow gap-4'):
                     with ui.card().classes('w-full h-[460px] p-4 border border-gray-200 rounded-xl shadow-none gap-4'):
-                        ui.button('Detect Speakers', 
-                                    on_click=lambda: detect_speakers(text_input, speaker_list_container, results_container, voice_options, single_voice_select)
-                                ).classes('w-full h-10 font-bold text-sm rounded-lg shadow-md') \
-                                    .props('color=indigo')
+                        speaker_list_container = None
                         
                         single_voice_select = speaker_row('Single voice', voice_options, '', 'font-semibold text-gray-700 w-26 truncate')
 
@@ -129,15 +202,23 @@ def audiobook_creation_tab(tab_object: ui.tab):
                                 on_click=lambda: reset_speakers(speaker_list_container, single_voice_select, results_container),
                             ).classes('w-full mt-2').props('color=red')
 
+                        ui.button('Detect Speakers', 
+                                  on_click=lambda: detect_speakers(text_input, speaker_list_container, results_container, voice_options, single_voice_select)
+                                ).classes('w-full h-10 font-bold text-sm rounded-lg shadow-md') \
+                                  .props('color=indigo')
+
             with ui.row().classes('w-full justify-center gap-4 pt-4'):
                 ui.label('Output Audio').classes('font-semibold text-gray-700')
                 ui.audio('').classes('w-full')
 
-
             with ui.row().classes('w-full justify-center gap-4 pt-4'):
-                ui.button('Create audio parts', on_click=lambda: ui.notify('Create audio parts - not implemented yet!')) \
+                ui.button('Create audio parts', 
+                          on_click=lambda: generate_lines_list(text_input, lines_list_container, voice_options, speaker_list_container)
+                         ) \
                     .classes('flex-grow h-12 font-bold text-base rounded-lg shadow-md') \
                     .props('color=indigo')
                 ui.button('Merge audio parts', on_click=lambda:  ui.notify('Merge audio parts - not implemented yet!')) \
                     .classes('flex-grow h-12 font-bold text-base rounded-lg shadow-md') \
                     .props('color=indigo')
+            
+            lines_list_container = ui.column().classes('w-full mt-4')

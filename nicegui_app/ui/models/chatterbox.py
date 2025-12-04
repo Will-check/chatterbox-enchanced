@@ -9,32 +9,42 @@ def chatterbox_controls():
             .classes('w-full mb-4').props('outlined dense')
 
         ui.label('Reference Audio').classes('font-semibold text-gray-700 w-full text-center')
-        
-        # DYNAMIC REFERENCE AUDIO SECTION
+
         with ui.column().classes('w-full relative'):
-            # 1. Upload Component (Visible initially)
-            upload_component = ui.upload(
-                on_upload=lambda e: handle_file_upload(e, upload_component, reference_audio_player_container),
-                on_rejected=lambda: ui.notify('Invalid file format. Supported: MP3, WAV, FLAC.', type='negative'),
-                label='Drop Audio Here or Click to Upload',
-                max_files=1,
-                auto_upload=True,
-                max_file_size=10_000_000, # 10MB limit
-            ).classes('w-full h-40 flex items-center justify-center')
-            
-            upload_component.props('hide-upload-button multiple accept=".mp3,.wav,.flac,audio/*" color=grey flat')
-            upload_component.style('border: 2px dashed #9ca3af; border-radius: 0.75rem; padding: 0.5rem;')
+            # Grouping container to keep both UI and functional elements together.
+            uploader_container = ui.element('div').classes('relative w-full h-40 group')
 
-            # TODO: Fix it it doesnt replace default style of the upload button
-            # with upload_component.add_slot('default'):
-            #     with ui.column().classes('w-full h-full items-center justify-center text-gray-500 gap-1'):
-            #         ui.icon('cloud_upload', size='xl').classes('text-gray-400')
-            #         ui.label('Drop Audio Here').classes('text-base')
-            #         ui.label('— or —').classes('text-sm text-gray-400')
-            #         ui.label('CLICK TO UPLOAD').classes('text-sm font-semibold text-orange-500 cursor-pointer')
+            # Kontener odtwarzacza audio jest tutaj tworzony, ale początkowo pozostaje ukryty.
+            # Jest przekazywany do handlera, aby został pokazany po przesłaniu.
+            reference_audio_player_container = ui.row().classes('w-full mt-2 p-2 border border-gray-200 rounded-xl bg-gray-50')
+            reference_audio_player_container.visible = False
 
-            # 2. Dynamic Audio Player Container (Hidden initially)
-            reference_audio_player_container = ui.row().classes('w-full hidden mt-2 p-2 border border-gray-200 rounded-xl bg-gray-50')
+            with uploader_container:
+                # UI layer
+                with ui.column().classes(
+                    'w-full h-full border-2 border-dashed border-slate-300 rounded-lg '
+                    'items-center justify-center bg-slate-50 transition-colors '
+                    'group-hover:bg-slate-100 group-hover:border-slate-400'
+                ):
+                    ui.icon('cloud_upload', size='2rem', color='slate-400').classes('mb-2 transition-transform group-hover:scale-110')
+                    ui.label('Drop Audio Here').classes('text-slate-500 text-base font-medium')
+                    ui.label('- or -').classes('text-slate-300 text-xs my-1')
+                    ui.label('CLICK TO UPLOAD').classes('font-bold text-orange-500 text-sm')
+
+                # Functional layer
+                uploader = ui.upload(
+                    auto_upload=True,
+                    on_upload=lambda e: handle_file_upload(e, uploader_container, reference_audio_player_container),
+                    on_rejected=lambda: ui.notify('Invalid file format. Supported: MP3, WAV, FLAC.', type='negative'),
+                    max_files=1,
+                    max_file_size=10_000_000, # 10MB limit
+                ).props(
+                    'flat no-shadow accept=".mp3,.wav,.flac,audio/*" hide-upload-btn'
+                ).classes(
+                    # Opacity to show the custom UI element
+                    'absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10'
+                )
+                uploader.on('click', lambda: uploader.run_method('pickFiles'))
                 
         # Sliders for Generation Control
         def create_labeled_slider(label_text, min_val, max_val, step, default_val):            
