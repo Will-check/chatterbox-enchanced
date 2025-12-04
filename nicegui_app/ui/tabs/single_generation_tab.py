@@ -43,13 +43,13 @@ def single_generation_tab(tab_object: ui.tab):
                 with ui.column().classes('w-full p-4 border border-gray-200 rounded-xl gap-6'):
                     
                     # 1. Text Input Area
-                    ui.label('Text to synthesize (max: chars 300)').classes('font-semibold text-gray-700')
+                    ui.label('Text to synthesize (max: chars 300)').classes('font-semibold text-gray-700 w-full text-center')
                     ui.textarea(placeholder='Enter text here...').props('rows=4 outlined dense') \
                         .classes('w-full h-24') 
                     
                     # 2. Language Dropdown
                     test_options = ['Polish', 'English', 'German']
-                    ui.label('Language').classes('font-semibold text-gray-700')
+                    ui.label('Language').classes('font-semibold text-gray-700  w-full text-center')
                     language_dropdown = ui.select(options=test_options, value='English', label='Select Language') \
                         .classes('w-full').props('outlined dense')
 
@@ -59,9 +59,11 @@ def single_generation_tab(tab_object: ui.tab):
                         is_any_model_selected
                     )   
 
-                    # 3. Generate Button
+                    ui.label('Output Audio').classes('font-semibold text-gray-700 w-full text-center')
+                    ui.audio('').classes('w-full')
+
                     generate_button = ui.button('Generate', on_click=lambda: ui.notify('Starting generation...', type='info')) \
-                        .classes('w-full h-12 text-white font-bold text-lg rounded-lg shadow-lg') \
+                        .classes('w-full h-12 text-white font-bold rounded-lg shadow-lg') \
                         .props('color=indigo')
                     
                     generate_button.bind_enabled_from(
@@ -69,7 +71,3 @@ def single_generation_tab(tab_object: ui.tab):
                         'active_model', 
                         is_any_model_selected
                     )
-
-                    # 4. Output Audio
-                    ui.label('Output Audio').classes('font-semibold text-gray-700')
-                    ui.audio('').classes('w-full')

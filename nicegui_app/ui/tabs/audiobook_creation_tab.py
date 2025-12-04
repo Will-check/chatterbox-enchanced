@@ -84,7 +84,7 @@ def audiobook_creation_tab(tab_object: ui.tab):
     with ui.tab_panel(tab_object).classes('p-0 m-0 w-full'):
         with ui.column().classes('w-full p-6 gap-6'):
             with ui.row().classes('w-full p-4 border border-gray-200 rounded-xl shadow-md gap-4 items-center'):
-                ui.label('Project:').classes('font-semibold text-gray-700 text-lg')
+                ui.label('Project:').classes('font-semibold text-gray-700')
                 ui.input(
                     value='', 
                     label='Select folder / project name'
@@ -93,7 +93,7 @@ def audiobook_creation_tab(tab_object: ui.tab):
             with ui.row().classes('w-full gap-6 flex flex-wrap justify-start'):
                 with ui.column().classes('w-full md:w-[calc(50%-12px)] flex-grow gap-4'):
                     with ui.card().classes('w-full h-[460px] p-4 border border-gray-200 rounded-xl shadow-none'):
-                        ui.label('Text to synthesize').classes('font-semibold text-gray-700')
+                        ui.label('Text to synthesize').classes('font-semibold text-gray-700 w-full text-center')
                         text_input = ui.textarea(
                             value='[Narrator] In a dark forest, full of mysteries, stood a small house.\n \
 [Alice] Is this where the forest sprite lives?\n \
@@ -114,17 +114,30 @@ def audiobook_creation_tab(tab_object: ui.tab):
                                 ).classes('w-full h-10 font-bold text-sm rounded-lg shadow-md') \
                                     .props('color=indigo')
                         
-                        single_voice_select = speaker_row('Single voice', voice_options, '', 'font-semibold text-gray-700 w-24 truncate')
+                        single_voice_select = speaker_row('Single voice', voice_options, '', 'font-semibold text-gray-700 w-26 truncate')
 
                         results_container = ui.column().classes('w-full gap-2')
                         results_container.clear()
                         results_container.set_visibility(False)
                         
                         with results_container:
-                            ui.label('Speakers list:').classes('font-semibold text-gray-700 mt-4')
+                            ui.label('Speaker list').classes('font-semibold text-gray-700 mt-4 w-full text-center')
                             
                             with ui.scroll_area().classes('w-full h-52 border border-gray-200 rounded-md p-2'):
                                 speaker_list_container = ui.column().classes('w-full gap-1')
                             ui.button('Remove speakers', 
                                 on_click=lambda: reset_speakers(speaker_list_container, single_voice_select, results_container),
-                            ).classes('w-full mt-2')
+                            ).classes('w-full mt-2').props('color=red')
+
+            with ui.row().classes('w-full justify-center gap-4 pt-4'):
+                ui.label('Output Audio').classes('font-semibold text-gray-700')
+                ui.audio('').classes('w-full')
+
+
+            with ui.row().classes('w-full justify-center gap-4 pt-4'):
+                ui.button('Create audio parts', on_click=lambda: ui.notify('Create audio parts - not implemented yet!')) \
+                    .classes('flex-grow h-12 font-bold text-base rounded-lg shadow-md') \
+                    .props('color=indigo')
+                ui.button('Merge audio parts', on_click=lambda:  ui.notify('Merge audio parts - not implemented yet!')) \
+                    .classes('flex-grow h-12 font-bold text-base rounded-lg shadow-md') \
+                    .props('color=indigo')
