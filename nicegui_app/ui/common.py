@@ -18,9 +18,10 @@ def handle_reset(upload_component, reference_audio_player_container):
         reference_audio_player_container.visible = False
         upload_component.visible = True
 
+
 async def handle_file_upload(e, upload_component, reference_audio_player_container):
     client_id = e.client.id
-    file_name = f'ref_{client_id}_{e.file.name}'
+    file_name = f"ref_{client_id}_{e.file.name}"
 
     # Reset the upload component
     e.sender.reset()
@@ -30,7 +31,7 @@ async def handle_file_upload(e, upload_component, reference_audio_player_contain
         os.remove(temp_audio_files[client_id])
 
     # Create a temporary file path
-    temp_dir = 'temp_uploads'
+    temp_dir = "temp_uploads"
     os.makedirs(temp_dir, exist_ok=True)
     temp_filepath = os.path.join(temp_dir, file_name)
 
@@ -44,17 +45,25 @@ async def handle_file_upload(e, upload_component, reference_audio_player_contain
         if reference_audio_player_container:
             with reference_audio_player_container:
                 reference_audio_player_container.clear()
-                with ui.row().classes('w-full items-center justify-between gap-2'):
-                        ui.audio(temp_filepath).classes('flex-grow')
-                        ui.icon('clear', size='sm').classes('text-gray-500 hover:text-red-500 cursor-pointer') \
-                        .tooltip('Clear reference audio').on('click', lambda: handle_reset(upload_component, reference_audio_player_container))
+                with ui.row().classes("items-center justify-between w-full gap-2"):
+                    ui.audio(temp_filepath).classes("flex-grow")
+                    ui.icon("clear", size="sm").classes(
+                        "text-gray-500 hover:text-red-500 cursor-pointer"
+                    ).tooltip("Clear reference audio").on(
+                        "click",
+                        lambda: handle_reset(
+                            upload_component, reference_audio_player_container
+                        ),
+                    )
 
-        ui.notify(f'Reference file uploaded: {e.file.name}', type='positive', timeout=2000)
+        ui.notify(
+            f"Reference file uploaded: {e.file.name}", type="positive", timeout=2000
+        )
 
         if upload_component and reference_audio_player_container:
             upload_component.visible = False
             reference_audio_player_container.visible = True
 
     except Exception as err:
-        ui.notify(f'Error saving file: {err}', type='negative')
+        ui.notify(f"Error saving file: {err}", type="negative")
         upload_component.visible = True
